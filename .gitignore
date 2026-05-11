@@ -1,0 +1,29 @@
+# 单个文件
+# config.py
+
+
+# # 整个文件夹
+# DCIM/
+
+# 某类文件
+# *.log
+# *.tmp
+# *.pyc
+
+# 视频
+*.mp4
+*.avi
+*.mov
+*.png
+*.stl
+video/
+DCIM/
+
+# 配置
+# config.py
+# settings.json
+
+# 临时文件
+# *.log
+# *.pyc
+# tmp/
