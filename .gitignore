@@ -16,8 +16,6 @@
 *.mov
 *.png
 *.stl
-video/
-DCIM/
 
 # 配置
 # config.py
