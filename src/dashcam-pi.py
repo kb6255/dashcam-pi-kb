@@ -51,7 +51,7 @@ class StreamingOutput(io.BufferedIOBase):
       with self.condition:          
         self.frame = buf               # 更新为最新帧
         self.condition.notify_all()    # 通知所有等待的线程有新帧可用
-'''
+
 # 导入 HTTP 服务器基础类，处理网页请求
 class StreamingHandler(server.BaseHTTPRequestHandler):
 
@@ -314,6 +314,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(302)
             self.send_header('Location', '/index.html')
             self.end_headers()
+
 '''
 # HTTP request handler
 class StreamingHandler(server.BaseHTTPRequestHandler):
@@ -492,7 +493,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
       self.send_response(302)
       self.send_header('Location', '/index.html')
       self.end_headers()
-
+'''
 # streaming server class
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
   allow_reuse_address = True

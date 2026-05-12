@@ -15,6 +15,7 @@
 *.avi
 *.mov
 *.png
+!favicon.png
 *.stl
 *.jpg
 
