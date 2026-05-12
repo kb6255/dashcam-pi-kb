@@ -16,6 +16,7 @@
 *.mov
 *.png
 *.stl
+*.jpg
 
 # 配置
 # config.py
