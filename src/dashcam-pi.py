@@ -21,7 +21,8 @@ camera_enabled = True
 streaming = False
 recording = False
 global recording_thread
-folder = '../DCIM/'
+# folder = '../DCIM/'
+folder = '/media/disk/DCIM/'
 
 # make new directories if they don't exist
 cmd = 'mkdir -p ' + folder + 'PHOTO ' + folder + 'VIDEO ' + folder + 'THUMB'
@@ -413,14 +414,14 @@ def get_files():
 try:
   camera = Picamera2()
   output = StreamingOutput()
-  main_stream = {'size': (1920, 1080)}
+  main_stream = {'size': (1280, 720)}
   lores_stream = {'size': (640, 360), 'format': 'YUV420'}
   config = camera.create_video_configuration(main_stream, lores_stream, encode = 'lores')
   camera.configure(config)
   camera.start()
   streaming_encoder = MJPEGEncoder()
-  streaming_encoder.quality = 20
-  recording_encoder = H264Encoder(10000000)
+  streaming_encoder.quality = 10
+  recording_encoder = H264Encoder(5000000)
   quality = Quality.VERY_HIGH
 
   # uncomment these lines if you want to start video recording right away
