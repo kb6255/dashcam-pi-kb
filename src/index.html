@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="favicon.png"/>
   <link rel="stylesheet" href="styles.css"/>
-  <title>DashCam Pi</title>
+  <title>DashCam</title>
 </head>
 <body>
 
 <div class="tabs">
-  <button class="tab-link active">DashCam Pi Home</button><br>
-  <button class="tab-link" onclick="window.location.href='gallery.html';">Gallery</button>
+  <button class="tab-link active">矿用本安行车记录仪</button><br>
+  <button class="tab-link" onclick="window.location.href='gallery.html';">相册</button>
 </div>
 
 <div class="error" style="visibility: '<!--##ERROR##-->'">Camera not ready, check and restart!</div>
@@ -31,12 +31,12 @@
     <div style="display: none;" class="button-indicator"></div>
   </div>
   <br>
-  <button class="button" onclick="window.location.href='/take_photo';">TAKE A PHOTO</button>
+  <button class="button" onclick="window.location.href='/take_photo';">拍照</button>
 </div>
 
-<button class="button" onclick="if (confirm('Are you sure you want to restart DashCam Pi?')) window.location.href='/restart';">RESTART</button>
+<button class="button" onclick="if (confirm('Are you sure you want to restart DashCam Pi?')) window.location.href='/restart';">重启</button>
 <br>
-<button class="button" onclick="if (confirm('Are you sure you want to turn off DashCam Pi?')) window.location.href='/turnoff';">TURN OFF</button>
+<button class="button" onclick="if (confirm('Are you sure you want to turn off DashCam Pi?')) window.location.href='/turnoff';">关闭</button>
 
 <script>
   const container = document.getElementsByClassName("button-container");

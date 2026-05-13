@@ -93,22 +93,22 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             if streaming:
                 # 正在预览 → 显示“停止预览”按钮
                 content = content.replace('<!--##HREF_PREVIEW##-->', '/stop_streaming') \
-                          .replace('<!--##BUTTON_PREVIEW##-->', 'STOP PREVIEW') \
+                          .replace('<!--##BUTTON_PREVIEW##-->', '停止预览') \
                           .replace('<!--##IMG_STREAM##-->', '<img src="stream.mjpg" alt="camera preview">')
             else:
                 # 未预览 → 显示“开始预览”按钮
                 content = content.replace('<!--##HREF_PREVIEW##-->', '/start_streaming') \
-                          .replace('<!--##BUTTON_PREVIEW##-->', 'START PREVIEW')
+                          .replace('<!--##BUTTON_PREVIEW##-->', '开始预览')
 
             # 根据【录像】状态，切换按钮文字
             if recording:
                 # 正在录像 → 显示“停止录像”
                 content = content.replace('<!--##HREF_RECORD##-->', '/stop_recording') \
-                          .replace('<!--##BUTTON_RECORD##-->', 'STOP VIDEO')
+                          .replace('<!--##BUTTON_RECORD##-->', '停止录像')
             else:
                 # 未录像 → 显示“开始录像”
                 content = content.replace('<!--##HREF_RECORD##-->', '/start_recording') \
-                          .replace('<!--##BUTTON_RECORD##-->', 'START VIDEO')
+                          .replace('<!--##BUTTON_RECORD##-->', '开始录像')
 
             # 把网页发给浏览器
             content = content.encode('utf-8')
@@ -315,185 +315,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header('Location', '/index.html')
             self.end_headers()
 
-'''
-# HTTP request handler
-class StreamingHandler(server.BaseHTTPRequestHandler):
-  def do_GET(self):
-    global page
-    global camera_enabled
-    global streaming
-    global recording
-    global recording_thread
-    global folder
-    # base path redirects to index.html
-    if self.path == '/':
-      self.send_response(301)
-      self.send_header('Location', '/index.html')
-      self.end_headers()     
-    elif self.path == '/index.html':
-      # substitute custom html tags with paths and text in user interface template (index.html content)
-      content = page
-      if camera_enabled:
-        content = content.replace('\'<!--##VISIBILITY##-->\'', 'visible') \
-                  .replace('\'<!--##ERROR##-->\'', 'hidden')
-      else:
-        content = content.replace('\'<!--##VISIBILITY##-->\'', 'hidden') \
-                  .replace('\'<!--##ERROR##-->\'', 'visible')
-      if streaming:
-        content = content.replace('<!--##HREF_PREVIEW##-->', '/stop_streaming') \
-                  .replace('<!--##BUTTON_PREVIEW##-->', 'STOP PREVIEW') \
-                  .replace('<!--##IMG_STREAM##-->', '<img src="stream.mjpg" alt="camera preview">')
-      else:
-        content = content.replace('<!--##HREF_PREVIEW##-->', '/start_streaming') \
-                  .replace('<!--##BUTTON_PREVIEW##-->', 'START PREVIEW')
-      if recording:
-        content = content.replace('<!--##HREF_RECORD##-->', '/stop_recording') \
-                  .replace('<!--##BUTTON_RECORD##-->', 'STOP VIDEO')
-      else:
-        content = content.replace('<!--##HREF_RECORD##-->', '/start_recording') \
-                  .replace('<!--##BUTTON_RECORD##-->', 'START VIDEO')
-      content = content.encode('utf-8')
-      self.send_response(200)
-      self.send_header('Content-Type', 'text/html')
-      self.send_header('Content-Length', len(content))
-      self.end_headers()
-      self.wfile.write(content)
-    elif self.path == ('/start_streaming'):
-      if not streaming:
-        # start video stream (live preview) using streaming encoder and lower resolution camera image stream
-        camera.start_recording(encoder = streaming_encoder, output = FileOutput(output), name = 'lores')
-        time.sleep(0.2)
-        streaming = True
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()    
-    elif self.path == '/start_recording':      
-      if not recording:
-        # start video recording in separate thread
-        recording = True
-        recording_thread = threading.Thread(target = record_video)
-        recording_thread.start()
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()
-    elif self.path == ('/stop_streaming'):
-      if streaming:
-        # stop video stream (live preview)
-        camera.stop_encoder(streaming_encoder)
-        streaming = False
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()
-    elif self.path == '/stop_recording':
-      if recording:
-        # stop video recording
-        recording = False
-        recording_thread.join()
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()
-    elif self.path == '/take_photo':
-      # define picture filename from timestamp
-      x = datetime.datetime.now()
-      filename = folder + 'PHOTO/dcp_' + x.strftime('%Y%m%d%H%M%S') + '.jpg'
-      # save picture from main camera image stream and make its thumbnail copy
-      save_with_thumbnail(filename)
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()
-    elif self.path == '/restart':
-      # restart Raspberry Pi
-      stop_video()
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()
-      cmd = 'sudo shutdown -r now'
-      fp = os.popen(cmd)
-      fp.close()      
-    elif self.path == '/turnoff':
-      # shut down Raspberry Pi
-      stop_video()
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()
-      cmd = 'sudo shutdown now'
-      fp = os.popen(cmd)
-      fp.close()
-    elif self.path == '/stream.mjpg' and streaming:
-      # get and return video stream content
-      self.send_response(200)
-      self.send_header('Age', 0)
-      self.send_header('Cache-Control', 'no-cache, private')
-      self.send_header('Pragma', 'no-cache')
-      self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
-      self.end_headers()
-      # read and return video stream output buffer
-      try:
-        while True:
-          with output.condition:
-            output.condition.wait()
-            frame = output.frame
-          self.wfile.write(b'--FRAME\r\n')
-          self.send_header('Content-Type', 'image/jpeg')
-          self.send_header('Content-Length', len(frame))
-          self.end_headers()
-          self.wfile.write(frame)
-          self.wfile.write(b'\r\n')
-      except Exception as e:
-        pass
-    elif self.path == '/favicon.png':
-      # get and return favicon.png
-      self.send_response(200)
-      self.send_header('Content-Type', 'image/png')
-      self.end_headers()
-      with open(self.path.replace('/', '', 1), 'rb') as f:
-        self.wfile.write(f.read())
-    elif self.path == '/styles.css':
-      # get and return styles.css
-      self.send_response(200)
-      self.send_header('Content-Type', 'text/css')
-      self.end_headers()
-      with open(self.path.replace('/', '', 1), 'rb') as f:
-        self.wfile.write(f.read())
-    elif self.path == '/gallery.html':
-      # get gallery.html content and substitute custom html tag with list of paths to videos and pictures
-      with open('gallery.html', 'r') as f:
-        content = f.read()
-      content = content.replace('<!--##IMG_GALLERY##-->', get_files())
-      content = content.encode('utf-8')
-      self.send_response(200)
-      self.send_header('Content-Type', 'text/html')
-      self.send_header('Content-Length', len(content))
-      self.end_headers()
-      self.wfile.write(content)
-    elif folder.replace('..', '') in self.path and '.jpg' in self.path:
-      # get and return .jpg file from corrected path
-      self.path = self.path.replace('/', '../', 1)
-      self.send_response(200)
-      self.send_header('Content-Type', 'image/jpeg')
-      self.end_headers()
-      try:
-        with open(self.path, 'rb') as f:
-          self.wfile.write(f.read())
-      except Exception as e:
-        pass
-    elif folder.replace('..', '') in self.path and '.mp4' in self.path:
-      # get and return .mp4 file from corrected path
-      self.path = self.path.replace('/', '../', 1)
-      self.send_response(200)
-      self.send_header('Content-Type', 'video/mp4')
-      self.end_headers()
-      try:
-        with open(self.path, 'rb') as f:
-          self.wfile.write(f.read())
-      except Exception as e:
-        pass
-    else:
-      # for unknown path, redirect to index.html, it's better than return code 404
-      self.send_response(302)
-      self.send_header('Location', '/index.html')
-      self.end_headers()
-'''
+
 # streaming server class
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
   allow_reuse_address = True
@@ -507,29 +329,60 @@ def save_with_thumbnail(origin):
   img.thumbnail((160, 90), Image.NEAREST)
   img.save(thumb)
 
-# capture video using recording encoder and main high resolution camera stream
+# 录像线程核心函数
+# 功能：使用录制编码器 + 主摄像头高清流 进行持续录像
 def record_video():
-  global recording
-  global folder
-  x = None
-  d = 0
-  # recording flag that stops this loop is set from the main thread
+  global recording       # 全局录像开关（True=录，False=停）
+  global folder          # 全局文件保存根目录
+  x = None               # 记录上一段视频的开始时间
+  d = 0                  # 记录当前段已经录了多久
+
+  # 只要 recording = True，就一直循环录像（停止信号由网页点击/主线程设置）
   while recording:
+    # 获取当前系统时间
     y = datetime.datetime.now()
+
+    # 计算：当前时间 - 上一段开始时间 = 已录制秒数
     if x is not None:
       d = (y - x).total_seconds()
+
+    # 第一次启动录像  OR  已经录满 60 秒
     if x is None or d > 60:
-      # every video file contains 60 seconds of recording
+      # 更新本段视频的开始时间
       x = y
+
+      # 生成视频文件名：时间戳命名
+      # 格式：folder/VIDEO/dcp_20260513101500.mp4
       filename = folder + 'VIDEO/dcp_' + x.strftime('%Y%m%d%H%M%S') + '.mp4'
+
+      # 【安全操作】先停止旧的编码器（防止重复启动报错）
       try:
         camera.stop_encoder(recording_encoder)
       except:
-        pass
-      camera.start_recording(encoder = recording_encoder, output = FfmpegOutput(output_filename = filename, audio = False), quality = quality, name = 'main')
-      # every video file gets its thumbnail picture for gallery
+        pass  # 第一次启动时没有编码器，报错忽略即可
+
+      # 【启动录像】核心代码
+      # 调用摄像头开始录制：
+      # - 使用 recording_encoder 编码器（硬件编码）
+      # - 输出到 FfmpegOutput 生成 MP4 文件
+      # - 关闭音频（audio=False）
+      # - 使用主摄像头高清流（name='main'）
+      camera.start_recording(
+          encoder = recording_encoder,
+          output = FfmpegOutput(output_filename = filename, audio = False),
+          quality = quality,
+          name = 'main'
+      )
+
+      # 给这段视频生成一个缩略图，用于网页相册显示
+      # 把 VIDEO/dcp_xxx.mp4 → THUMB/dcpvid_xxx.jpg
       save_with_thumbnail(filename.replace('VIDEO/dcp_', 'THUMB/dcpvid_').replace('.mp4', '.jpg'))
+
+    # 每 2 秒检查一次是否录满 60 秒（不用一直循环占CPU）
     time.sleep(2)
+
+  # 退出 while 循环 = 收到停止录像信号
+  # 最终停止编码器，关闭文件，释放摄像头资源
   camera.stop_encoder(recording_encoder)
 
 # stop video recording
