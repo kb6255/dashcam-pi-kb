@@ -397,14 +397,17 @@ def stop_video():
 def get_files():
   files = ''
   # list all dcp_*.jpg and dcp_*mp4 files in DCIM folder and its subfolders excluding THUMB subfolder, extract timestamp, path name, then sort from newest to oldest file, return path with filename
-  cmd = 'find .. -type f \( -iname "dcp_*.jpg" -o -iname "dcp_*.mp4" -path "*/DCIM/*" \) \( -not -path "*/THUMB/*" \) -printf "%T@\t%p\n" | sort -n -r | cut -f2-'
+  cmd = 'find /media/disk/DCIM -type f \( -iname "dcp_*.jpg" -o -iname "dcp_*.mp4" -path "*/DCIM/*" \) \( -not -path "*/THUMB/*" \) -printf "%T@\t%p\n" | sort -n -r | cut -f2-'
+  # cmd = 'find /media/disk/DCIM -type f \( -iname "dcp_*.jpg" -o -iname "dcp_*.mp4" \) -not -path "*/THUMB/*" -printf "%T@\t%p\n" | sort -n -r | cut -f2-'
   fp = os.popen(cmd)
   for line in fp:
+    line = line.strip()  # 去掉换行符（必须加）
+
     if '.mp4' in line:
-      files = files + '<video wihth="160" height="90" controls preload="none" poster="%s"><source src="%s" type="video/mp4"></video>\n' %  \
+      files = files + '<video width="160" height="90" controls preload="none" poster="%s"><source src="%s" type="video/mp4"></video>\n' %  \
         (line.replace('VIDEO', 'THUMB').replace('dcp_', 'dcpvid_').replace('.mp4', '.jpg'), line)
     if '.jpg' in line:
-      files = files + '<img wihth="160" height="90" src="%s" alt="photo">\n' % line.replace('PHOTO', 'THUMB')
+      files = files + '<img width="160" height="90" src="%s" alt="photo">\n' % line.replace('PHOTO', 'THUMB')
   fp.close()
   return files
 
